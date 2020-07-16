@@ -14,15 +14,18 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 def register():
     if request.method == 'POST':
         username = request.form['username']
+        full_name = request.form['full_name']
         password = request.form['password']
 
         db = get_db()
         error = None
 
         if not username:
-            error = 'Username required.'
+            error = 'Username required'
+        elif not full_name:
+            error = 'Full name required'
         elif not password:
-            error = 'Password required.'
+            error = 'Password required'
         elif db.execute(
                 'SELECT id FROM user WHERE username = ?',
                 (username,)
@@ -31,8 +34,9 @@ def register():
 
         if error is None:
             db.execute(
-                'INSERT INTO user (username, password) VALUES (?, ?)',
-                (username, generate_password_hash(password))
+                '''INSERT INTO user (username, full_name, password)
+                VALUES (?, ?, ?)''',
+                (username, full_name, generate_password_hash(password))
             )
             db.commit()
             return redirect(url_for('auth.login'))
