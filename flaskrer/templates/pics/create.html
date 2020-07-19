@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}New Picture{% endblock title %}</h1>
+{% endblock header %}
+
+{% block content %}
+  <form method="post" enctype="multipart/form-data">
+    <label for="picture">Picture</label>
+    <input type="file" name="picture" id="picture" required>
+    <label for="title">Title</label>
+    <input name="title" id="title" value="{{ request.form['title'] }}" required>
+    <label for="alternative_text">Alternative Text</label>
+    <input name="alternative_text" id="alternative_text" value="{{ request.form['alternative_text'] }}" required>
+    <label for="description">Description</label>
+    <textarea name="description" id="description">{{ request.form['description'] }}</textarea>
+    <input type="submit" value="Submit">
+  </form>
+{% endblock content %}
