@@ -101,6 +101,42 @@ def create():
     return render_template('pics/create.html')
 
 
+@bp.route('/')
+def index():
+    db = get_db()
+    # TODO: Getting all the pictures at the same time is not a good idea if
+    #       there are a lot
+    pics = db.execute(
+        'SELECT p.id, p.author_id, p.hash, p.created, p.title,'
+        ' p.alternative_text, p.description, u.username'
+        ' FROM image_post p'
+        ' JOIN user u ON p.author_id = u.id'
+        ' ORDER BY created DESC'
+    ).fetchall()
+
+    return render_template('pics/index.html', pics=pics)
+
+
+@bp.route('/uploads')
+def uploads():
+    user = request.args.get('user')
+    pic_hash = request.args.get('pic_hash')
+
+    if not user or not pic_hash:
+        return abort(400, "Missing parameters")
+
+    pic_hash = secure_filename(pic_hash)
+
+    user_directory = get_user_upload_directory(user)
+    try:
+        pic_location = next(glob.iglob(os.path.join(user_directory,
+                                                    f'{pic_hash}.*')))
+    except StopIteration:
+        return abort(404, "File does not exist")
+
+    return send_file(pic_location)
+
+
 # XXX: This is the same as in auth.py. There may be a way to refactore it.
 @bp.before_app_request
 def load_logged_in_user():
