@@ -137,6 +137,55 @@ def uploads():
     return send_file(pic_location)
 
 
+@bp.route('/update/<int:id>', methods=('GET', 'POST'))
+@login_required
+def update(id):
+    pic = get_image_post(id)
+
+    if request.method == 'POST':
+        title = request.form['title']
+        alternative_text = request.form['alternative_text']
+        description = request.form['description']
+        if not description:
+            description = ''
+
+        error = None
+        if not title:
+            error = 'Title required'
+        elif not alternative_text:
+            error = 'Alternative text required'
+
+        if error is None:
+            db = get_db()
+            db.execute(
+                'UPDATE image_post'
+                ' SET title = ?, alternative_text = ?, description = ?'
+                ' WHERE id = ?',
+                (title, alternative_text, description, id)
+            )
+            db.commit()
+
+            return redirect(url_for('index'))
+
+        flash(error)
+
+    return render_template('pics/update.html', pic=pic)
+
+
+@bp.route('/delete/<int:id>', methods=('POST',))
+@login_required
+def delete(id):
+    get_image_post(id)
+    db = get_db()
+    db.execute(
+        'DELETE FROM image_post WHERE id = ?',
+        (id,)
+    )
+    db.commit()
+
+    return redirect(url_for('index'))
+
+
 # XXX: This is the same as in auth.py. There may be a way to refactore it.
 @bp.before_app_request
 def load_logged_in_user():
@@ -172,3 +221,21 @@ def generate_hash(filename):
 def get_user_upload_directory(username):
     return os.path.join(current_app.config['UPLOAD_FOLDER'],
                         username)
+
+
+def get_image_post(id, check_author=True):
+    image_post = get_db().execute(
+        'SELECT id, author_id, hash, created, title, alternative_text,'
+        ' description'
+        ' FROM image_post'
+        ' WHERE id = ?',
+        (id,)
+    ).fetchone()
+
+    if image_post is None:
+        abort(404, f"Picture id {id} does not exist")
+
+    if check_author and image_post['author_id'] != g.user['id']:
+        abort(403)
+
+    return image_post

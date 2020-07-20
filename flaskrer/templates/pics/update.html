@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Edit "{{ pic['title'] }}"{% endblock title %}</h1>
+{% endblock header %}
+
+{% block content %}
+  <form method="post">
+    <label for="title">Title</label>
+    <input name="title" id="title" value="{{ request.form['title'] or pic['title'] }}" required>
+    <label for="alternative_text">Alternative Text</label>
+    <input name="alternative_text" id="alternative_text" value="{{ request.form['alternative_text'] or pic['alternative_text'] }}" required>
+    <label for="description">Description</label>
+    <textarea name="description" id="description">{{ request.form['description'] or pic['description'] }}</textarea>
+    <input type="submit" value="Update">
+  </form>
+  <hr>
+  <form action="{{ url_for('pics.delete', id=pic['id']) }}" method="post">
+    <input class="danger" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
+  </form>
+{% endblock content %}

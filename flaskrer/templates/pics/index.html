@@ -19,9 +19,7 @@
           </div>
         </div>
         {% if g.user['id'] == pic['author_id'] %}
-          {# TODO #}
-          {# <a class="action" href="{{ url_for('pics.update', id=pic['id']) }}"> #}
-          <a class="action" href="{{ url_for('index') }}">
+          <a class="action" href="{{ url_for('pics.update', id=pic['id']) }}">
             Edit
           </a>
         {% endif %}
