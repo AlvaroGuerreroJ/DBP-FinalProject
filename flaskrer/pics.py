@@ -5,7 +5,7 @@ import os
 import shutil
 import tempfile
 
-from flask import (Blueprint, Response, abort, current_app, flash, g, redirect,
+from flask import (Blueprint, abort, current_app, flash, g, redirect,
                    render_template, request, send_file, session, url_for)
 from werkzeug.utils import secure_filename
 
