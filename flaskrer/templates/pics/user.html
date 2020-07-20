@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}{{ user['username'] }} - Profile{% endblock title %}</h1>
+{% endblock header %}
+
+{% block content %}
+  {% for pic in user_pics %}
+    <article class="pic">
+      <header>
+        <div>
+          <h1>{{ pic['title'] }}</h1>
+          <div class="about">
+            originally uploaded by {{ pic['username'] }} on
+            {{ pic['created'].strftime('%Y-%m-%d %H:%M %Z') }}
+          </div>
+        </div>
+        {% if g.user['id'] == pic['author_id'] %}
+          <a class="action" href="{{ url_for('pics.update', id=pic['id']) }}">
+            Edit
+          </a>
+        {% endif %}
+      </header>
+      <img alt="{{ pic["alternative_text"] }}"
+           src="{{ url_for('pics.uploads', user=pic['username'], pic_hash=pic['hash']) }}">
+           <p class="body">{{ pic['description'] }}</p>
+    </article>
+    {% if not loop.last %}
+      <hr>
+    {% endif %}
+  {% endfor %}
+{% endblock content %}

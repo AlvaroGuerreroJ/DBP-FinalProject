@@ -186,6 +186,31 @@ def delete(id):
     return redirect(url_for('index'))
 
 
+@bp.route('/user/<username>', methods=('GET',))
+def user(username):
+    db = get_db()
+    user = db.execute(
+        'SELECT * FROM user WHERE username = ?',
+        (username,)
+    ).fetchone()
+
+    if user is None:
+        flash(f'User "{username}" does not exist')
+        return redirect(url_for('index'))
+
+    user_pics = db.execute(
+        'SELECT p.id, p.author_id, p.hash, p.created, p.title,'
+        ' p.alternative_text, p.description, u.username'
+        ' FROM image_post p'
+        ' JOIN user u ON p.author_id = u.id'
+        ' WHERE author_id = ?'
+        ' ORDER BY created DESC',
+        (user['id'],)
+    ).fetchall()
+
+    return render_template('pics/user.html', user=user, user_pics=user_pics)
+
+
 # XXX: This is the same as in auth.py. There may be a way to refactore it.
 @bp.before_app_request
 def load_logged_in_user():
