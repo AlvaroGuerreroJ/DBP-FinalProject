@@ -116,20 +116,48 @@ def index():
     return render_template('pics/index.html', pics=pics)
 
 
-@bp.route('/uploads')
-def uploads():
-    user = request.args.get('user')
-    pic_hash = request.args.get('pic_hash')
-
-    if not user or not pic_hash:
-        return abort(400, "Missing parameters")
-
+@bp.route('/uploads/hash/<pic_hash>', methods=('GET',))
+def get_pic_by_hash(pic_hash):
     pic_hash = secure_filename(pic_hash)
 
-    user_directory = get_user_upload_directory(user)
+    pic = get_db().execute(
+        'SELECT hash, username'
+        ' FROM image_post p'
+        ' JOIN user u ON p.author_id = u.id'
+        ' WHERE p.hash = ?',
+        (pic_hash,)
+    ).fetchone()
+
+    if pic is None:
+        abort(404)
+
+    user_directory = get_user_upload_directory(pic['username'])
     try:
         pic_location = next(glob.iglob(os.path.join(user_directory,
                                                     f'{pic_hash}.*')))
+    except StopIteration:
+        return abort(404)
+
+    return send_file(pic_location)
+
+
+@bp.route('/uploads/id/<int:id>', methods=('GET',))
+def get_pic_by_id(id):
+    pic = get_db().execute(
+        'SELECT hash, username'
+        ' FROM image_post p'
+        ' JOIN user u ON p.author_id = u.id'
+        ' WHERE p.id = ?',
+        (id,)
+    ).fetchone()
+
+    if pic is None:
+        abort(404)
+
+    user_directory = get_user_upload_directory(pic['username'])
+    try:
+        pic_location = next(glob.iglob(os.path.join(user_directory,
+                                                    f"{pic['hash']}.*")))
     except StopIteration:
         return abort(404, "File does not exist")
 

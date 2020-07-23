@@ -22,7 +22,7 @@
         {% endif %}
       </header>
       <img alt="{{ pic["alternative_text"] }}"
-           src="{{ url_for('pics.uploads', user=pic['username'], pic_hash=pic['hash']) }}">
+           src="{{ url_for('pics.get_pic_by_id', user=pic['username'], id=pic['id']) }}">
            <p class="body">{{ pic['description'] }}</p>
     </article>
     {% if not loop.last %}
