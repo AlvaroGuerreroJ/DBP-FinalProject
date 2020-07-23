@@ -14,8 +14,6 @@ from flaskrer.db import get_db
 
 bp = Blueprint('pics', __name__)
 
-allowed_file_extensions = {'png', 'jpg', 'jpeg'}
-
 
 class FlaskrerError(Exception):
     pass
@@ -50,8 +48,9 @@ def create():
             picture.save(temp_filename)
 
             picture_extension = imghdr.what(temp_filename)
-            if picture_extension is None or \
-               picture_extension not in allowed_file_extensions:
+            if (picture_extension is None or
+                picture_extension not in
+                    current_app.config['ALLOWED_FILE_EXTENSIONS']):
                 raise FlaskrerError(
                     'File is not of one of the supported types'
                 )
@@ -226,8 +225,9 @@ def load_logged_in_user():
 
 
 def allowed_file(filename):
-    return '.' in filename and \
-        filename.rsplit('.', 1)[1] in allowed_file_extensions
+    return ('.' in filename and
+            filename.rsplit('.', 1)[1] in
+            current_app.config['ALLOWED_FILE_EXTENSIONS'])
 
 
 def generate_hash(filename):

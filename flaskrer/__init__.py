@@ -10,7 +10,8 @@ def create_app(test_config=None):
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'flaskrer.sqlite'),
         MAX_CONTENT_LENGTH=(128 * 1024 * 1024),  # 128MB
-        UPLOAD_FOLDER=os.path.join(app.instance_path, 'Pics')
+        UPLOAD_FOLDER=os.path.join(app.instance_path, 'Pics'),
+        ALLOWED_FILE_EXTENSIONS={'png', 'jpg', 'jpeg'}
     )
 
     if test_config is None:
