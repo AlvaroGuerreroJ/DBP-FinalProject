@@ -200,6 +200,9 @@ def get_comments(post_id):
 def create_comment(post_id):
     content = request.json['content']
 
+    if not len(content):
+        abort(400, 'Empty content')
+
     db = get_db()
 
     if db.execute(
