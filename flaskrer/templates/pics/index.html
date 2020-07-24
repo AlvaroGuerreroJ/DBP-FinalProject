@@ -12,7 +12,7 @@
     <article class="pic">
       <header>
         <div>
-          <h1>{{ pic['title'] }}</h1>
+          <h1><a href="{{ url_for('pics.pics', pic_id=pic['id']) }}">{{ pic['title'] }}</a></h1>
           <div class="about">
             originally uploaded by {{ pic['username'] }} on
             {{ pic['created'].strftime('%Y-%m-%d %H:%M %Z') }}
@@ -24,9 +24,11 @@
           </a>
         {% endif %}
       </header>
-      <img alt="{{ pic["alternative_text"] }}"
-           src="{{ url_for('pics.get_pic_by_id', id=pic['id']) }}">
-           <p class="body">{{ pic['description'] }}</p>
+      <a href="{{ url_for('pics.pics', pic_id=pic['id']) }}">
+        <img alt="{{ pic["alternative_text"] }}"
+             src="{{ url_for('pics.get_pic_by_id', id=pic['id']) }}">
+      </a>
+      <p class="body">{{ pic['description'] }}</p>
     </article>
     {% if not loop.last %}
       <hr>

@@ -136,3 +136,21 @@ input[type=submit] {
   align-self: start;
   min-width: 10em;
 }
+
+.comment_section textarea {
+  width: 100%;
+}
+
+.comment .comment-username {
+  font-size: smaller;
+}
+
+.comment .comment-created {
+  color: slategray;
+  font-style: italic;
+  padding-bottom: 0.5rem;
+}
+
+.comment .comment-content {
+  white-space: pre-wrap;
+}

@@ -116,6 +116,13 @@ def index():
     return render_template('pics/index.html', pics=pics)
 
 
+@bp.route('/pics/<int:pic_id>', methods=('GET',))
+def pics(pic_id):
+    pic = get_image_post(pic_id, False)
+
+    return render_template('pics/pic.html', pic=pic)
+
+
 @bp.route('/uploads/hash/<pic_hash>', methods=('GET',))
 def get_pic_by_hash(pic_hash):
     pic_hash = secure_filename(pic_hash)
@@ -288,10 +295,11 @@ def get_user_upload_directory(username):
 
 def get_image_post(id, check_author=True):
     image_post = get_db().execute(
-        'SELECT id, author_id, hash, created, title, alternative_text,'
-        ' description'
-        ' FROM image_post'
-        ' WHERE id = ?',
+        'SELECT p.id, author_id, hash, created, title, alternative_text,'
+        ' description, username'
+        ' FROM image_post p'
+        ' JOIN user u ON p.author_id = u.id'
+        ' WHERE p.id = ?',
         (id,)
     ).fetchone()
 

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}{{ pic['title'] }} by {{ pic['username'] }} {% endblock title %}</h1>
+{% endblock header %}
+
+{% block content %}
+  <article class="pic">
+    <header>
+      <div>
+        <h1>{{ pic['title'] }}</h1>
+        <div class="about">
+          originally uploaded by {{ pic['username'] }} on
+          {{ pic['created'].strftime('%Y-%m-%d %H:%M %Z') }}
+        </div>
+      </div>
+      {% if g.user['id'] == pic['author_id'] %}
+        <a class="action" href="{{ url_for('pics.update', id=pic['id']) }}">
+          Edit
+        </a>
+      {% endif %}
+    </header>
+    <img alt="{{ pic["alternative_text"] }}"
+         src="{{ url_for('pics.get_pic_by_id', id=pic['id']) }}">
+         <p class="body">{{ pic['description'] }}</p>
+  </article>
+  <div class="comment_section">
+    <textarea name="content" id="input_comment" placeholder="Leave a comment..."></textarea>
+    <br>
+    <button type="button" id="submit_comment_button">Submit comment</button>
+    {% if g.user %}
+    {% endif %}
+    <div id="comments">
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='js/pics/pic.js') }}"></script>
+{% endblock content %}
