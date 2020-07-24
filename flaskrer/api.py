@@ -177,6 +177,48 @@ def create_post():
     return {'msg': 'Post created'}
 
 
+@bp.route('/comment/<int:post_id>', methods=('GET',))
+def get_comments(post_id):
+    comments = get_db().execute(
+        'SELECT c.content, c.created, c.post_id, u.username'
+        ' FROM comment c'
+        ' JOIN user u ON c.author_id = u.id'
+        ' WHERE c.post_id = ?'
+        ' ORDER BY created DESC',
+        (post_id,)
+    ).fetchall()
+
+    # TODO: Refactor this into a function
+    return jsonify(
+        [{k: row[k] for k in row.keys()} for row in comments]
+    )
+
+
+@bp.route('/comment/<int:post_id>', methods=('POST',))
+@require_request_json('content')
+@login_required
+def create_comment(post_id):
+    content = request.json['content']
+
+    db = get_db()
+
+    if db.execute(
+            'SELECT * FROM image_post WHERE id = ?',
+            (post_id,)
+    ).fetchone() is None:
+        abort(400, 'Post does not exist')
+
+    db.execute(
+        'INSERT INTO comment'
+        ' (content, author_id, post_id)'
+        ' VALUES (?, ?, ?)',
+        (content, g.user['id'], post_id)
+    )
+    db.commit()
+
+    return {'msg': 'Created comment'}
+
+
 # XXX: This is the same as in auth.py. There may be a way to refactor it.
 @bp.before_app_request
 def load_logged_in_user():
