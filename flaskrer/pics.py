@@ -202,7 +202,17 @@ def update(id):
 @bp.route('/delete/<int:id>', methods=('POST',))
 @login_required
 def delete(id):
-    get_image_post(id)
+    pic = get_image_post(id)
+
+    user_directory = get_user_upload_directory(g.user['username'])
+    try:
+        pic_location = next(glob.iglob(os.path.join(user_directory,
+                                                    f"{pic['hash']}.*")))
+    except StopIteration:
+        return abort(404)
+
+    os.remove(pic_location)
+
     db = get_db()
     db.execute(
         'DELETE FROM image_post WHERE id = ?',
