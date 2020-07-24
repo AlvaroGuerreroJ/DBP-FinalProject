@@ -15,16 +15,39 @@ from flaskrer.pics import generate_hash, get_user_upload_directory
 bp = Blueprint('api', __name__, url_prefix='/api')
 
 
+def require_request_json(*required_keys):
+    required_keys = set(required_keys)
+
+    def decorator(f):
+        @functools.wraps(f)
+        def ret(*args, **kwargs):
+            if (request.json is None
+                    or any(k not in request.json for k in required_keys)):
+                abort(400)
+
+            return f(*args, **kwargs)
+
+        return ret
+
+    return decorator
+
+
+def login_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None:
+            return abort(401, 'Not logged in')
+
+        return view(**kwargs)
+
+    return wrapped_view
+
+
 @bp.route('/login', methods=('POST',))
+@require_request_json('username', 'password')
 def login():
-    if not request.json:
-        abort(400)
-
-    username = request.json.get('username')
-    password = request.json.get('password')
-
-    if not username or not password:
-        abort(400)
+    username = request.json['username']
+    password = request.json['password']
 
     db = get_db()
     user = db.execute(
@@ -46,19 +69,15 @@ def login():
 
 
 @bp.route('/register', methods=('POST',))
+@require_request_json('username', 'full_name', 'password')
 def register():
-    if not request.json:
-        abort(400)
-
-    username = request.json.get('username')
-    full_name = request.json.get('full_name')
-    password = request.json.get('password')
+    username = request.json['username']
+    full_name = request.json['full_name']
+    password = request.json['password']
 
     db = get_db()
 
-    if not username or not full_name or not password:
-        abort(400, 'Missing fields')
-    elif db.execute(
+    if db.execute(
             'SELECT id FROM user WHERE username = ?',
             (username,)
     ).fetchone() is not None:
@@ -75,10 +94,8 @@ def register():
 
 
 @bp.route('/log_out', methods=('GET',))
+@login_required
 def log_out():
-    if session.get('user_id') is None:
-        abort(400, 'Not logged in')
-
     session.clear()
     return {'msg': 'Logged out'}
 
@@ -102,19 +119,15 @@ def get_posts():
 
 
 @bp.route('/post', methods=('POST',))
+@require_request_json('title', 'alternative_text', 'picture')
+@login_required
 def create_post():
-    if request.json is None:
-        abort(400)
-
-    title = request.json.get('title')
-    alternative_text = request.json.get('alternative_text')
+    title = request.json['title']
+    alternative_text = request.json['alternative_text']
     description = request.json.get('description')
     if description is None:
         description = ''
-    picture = request.json.get('picture')
-
-    if any(e is None for e in (title, alternative_text, picture)):
-        abort(400)
+    picture = request.json['picture']
 
     _, temp_filename = tempfile.mkstemp()
     decoded = base64.b64decode(picture)
@@ -164,7 +177,7 @@ def create_post():
     return {'msg': 'Post created'}
 
 
-# XXX: This is the same as in auth.py. There may be a way to refactore it.
+# XXX: This is the same as in auth.py. There may be a way to refactor it.
 @bp.before_app_request
 def load_logged_in_user():
     user_id = session.get('user_id')
@@ -176,14 +189,3 @@ def load_logged_in_user():
             'SELECT * FROM user WHERE id = ?',
             (user_id,)
         ).fetchone()
-
-
-def login_required(view):
-    @functools.wraps(view)
-    def wrapped_view(**kwargs):
-        if g.user is None:
-            return abort(401, 'Not logged in')
-
-        return view(**kwargs)
-
-    return wrapped_view
